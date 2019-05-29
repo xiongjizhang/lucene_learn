@@ -3,11 +3,9 @@ package com.machine.lucene_first;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.wltea.analyzer.lucene.IKAnalyzer;
@@ -30,11 +28,29 @@ public class FirstLuceneQuery {
         QueryParser parser = new QueryParser("title", new IKAnalyzer());
 
         // 创建查询对象
-        Query query = parser.parse("hello");
+        Query query = parser.parse("第一次lucene");
+
+        // Term(词条)是搜索的最小单位，不可再分词
+        TermQuery termQuery = new TermQuery(new Term("title" ,"lucene"));
+
+        // 通配符查询
+        Query wildcardQuery = new WildcardQuery(new Term("title", "*lucene*"));
+
+        // 模糊查询 maxEdits 取值0～2
+        Query fuzzyQuery = new FuzzyQuery(new Term("title","lucenes"),1);
+
+        /*// 数值范围查询对象，参数：字段名称，最小值、最大值、是否包含最小值、是否包含最大值
+        Query query = NumericRangeQuery.newLongRange("id", 2L, 2L, true, true);
+
+        // 创建布尔查询的对象
+        BooleanQuery booleanQuery = new BooleanQuery();
+        // 组合其它查询
+        booleanQuery.add(fuzzyQuery, BooleanClause.Occur.MUST_NOT);
+        booleanQuery.add(wildcardQuery, BooleanClause.Occur.SHOULD);*/
 
         // 搜索数据,两个参数：查询条件对象要查询的最大结果条数
         // 返回的结果是 按照匹配度排名得分前N名的文档信息（包含查询到的总条数信息、所有符合条件的文档的编号信息）。
-        TopDocs topDocs = searcher.search(query, 10);
+        TopDocs topDocs = searcher.search(fuzzyQuery, 10);
 
         // 获取总条数
         System.out.println("本次搜索共找到" + topDocs.totalHits + "条数据");
